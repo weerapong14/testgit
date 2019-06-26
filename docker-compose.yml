@@ -1,0 +1,43 @@
+version: '3'
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+     - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - '9090:9090'
+    restart: always
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - '9100:9100'
+
+  grafana:
+    image: grafana/grafana:3.0.0-beta7
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+
+services: 
+    cadvisor:
+        image: google/cadvisor 
+        container_name: cadvisor
+        volumes:
+           - /:/rootfs:ro
+           - /var/run:/var/run:rw
+           - /sys:/sys:ro
+           - /var/lib/docker/:/var/lib/docker:ro
+        ports:
+           - 9911:8080
+        privileged: true
+        restart: always
